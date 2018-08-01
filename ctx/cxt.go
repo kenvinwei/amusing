@@ -45,7 +45,7 @@ func main() {
 		b := 2
 		timeout := 2 * time.Second
 		ctx, _ := context.WithTimeout(context.Background(), timeout)
-		res := Add(ctx, 1, 1)
+		res := Add(ctx, 1, 2)
 		fmt.Printf("Compute: %d+%d, result: %d\n", a, b, res)
 	}
 	{
