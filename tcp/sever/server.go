@@ -4,32 +4,58 @@ import (
 	"net"
 	"log"
 	"strings"
+	"fmt"
+	"time"
 )
 
 var allConn = make([]net.Conn, 5)
+var Msg chan string = make(chan string, 5)
 
 func handle(conn net.Conn) {
 
+	fmt.Println("handle start......")
 	allConn = append(allConn, conn)
 
-	log.Println(allConn)
+	go ReadMsg(conn)
 
+	go Notify(allConn)
 
-	data := make([]byte, 1024)
-	n, err := conn.Read(data)
-	if err != nil {
-		log.Println("conn read failed!")
-	}
+}
 
-	userMsg := strings.TrimSpace(string(data[0:n]))
-	log.Printf("msg : %s\n", userMsg)
-	//conn.Write([]byte(userMsg + "\n"))
+func Notify(conns []net.Conn) {
+	for {
+		userMsg := <-Msg
 
-	//通知所有链接
-	for _, v := range allConn {
-		if _, ok := v.(net.Conn); ok {
-			v.Write([]byte(userMsg + "\n"))
+		//通知所有链接
+		for _, v := range allConn {
+			if _, ok := v.(net.Conn); ok {
+				v.Write([]byte(userMsg + "\n"))
+			}
 		}
+	}
+}
+
+func ReadMsg(conn net.Conn) {
+	for {
+		data := make([]byte, 1024)
+		n, err := conn.Read(data)
+		if n == 0 {
+			time.Sleep(2 * time.Millisecond)
+			continue
+		}
+
+		fmt.Println("read byte len:", n)
+
+		if err != nil {
+			log.Println("conn read failed!")
+
+		}
+
+		userMsg := strings.TrimSpace(string(data[0:n]))
+		go func() {
+			Msg <- userMsg
+		}()
+		//log.Println("recv msg : ", userMsg)
 	}
 }
 
@@ -52,5 +78,7 @@ func main() {
 		go handle(conn)
 
 	}
+
+
 
 }
