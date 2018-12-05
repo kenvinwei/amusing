@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"context"
 )
-
+//这里用客户端的etcdctl 并不生效原因是 api版本不一致，请设置 export ETCDCTL_API=3 即可
 func main() {
 	var (
 		err error
